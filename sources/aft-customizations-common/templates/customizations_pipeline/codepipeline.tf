@@ -30,8 +30,8 @@ resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
       version          = "1"
       output_artifacts = ["source-aft-global-customizations"]
       configuration = {
-        S3Bucket             = data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name
-        S3ObjectKey          = data.aws_ssm_parameter.account_global_customizations_s3_object_key
+        S3Bucket             = tostring(data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name.value)
+        S3ObjectKey          = tostring(data.aws_ssm_parameter.account_global_customizations_s3_object_key.value)
         PollForSourceChanges = false
       }
     }
@@ -45,8 +45,8 @@ resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
       output_artifacts = ["source-aft-account-customizations"]
 
       configuration = {
-        S3Bucket             = data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name
-        S3ObjectKey          = data.aws_ssm_parameter.account_customizations_s3_object_key
+        S3Bucket             = tostring(data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name.value)
+        S3ObjectKey          = tostring(data.aws_ssm_parameter.account_customizations_s3_object_key.value)
         PollForSourceChanges = false
       }
     }
