@@ -50,7 +50,12 @@ data "aws_ssm_parameter" "account_provisioning_customizations_s3_bucket_name" {
   name = "/aft/config/vcs/account-provisioning-customizations-s3-bucket-name"
 }
 
-data "aws_ssm_parameter" "
+data "aws_ssm_parameter" "account_global_customizations_s3_object_key" {
+  name = "/aft/config/vcs/account-global-customizations-s3-object_key"
+}
 
-        S3Bucket             = data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name
-        S3ObjectKey          = data.aws_ssm_parameter.account_global_customizations_s3_object_key
+data "aws_ssm_parameter" "account_customizations_s3_object_key" {
+  name = "/aft/config/vcs/account-customizations-s3-object_key"
+}
+
+
