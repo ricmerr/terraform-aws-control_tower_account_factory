@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
-  count    = local.vcs.is_codecommit || local.vcs.is)s3 ? 1 : 0
+  count    = local.vcs.is_codecommit || local.vcs.is_s3 ? 1 : 0
   name     = "${var.account_id}-customizations-pipeline"
   role_arn = data.aws_iam_role.aft_codepipeline_customizations_role.arn
 
