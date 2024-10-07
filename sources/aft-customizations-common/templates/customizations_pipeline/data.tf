@@ -55,7 +55,7 @@ data "aws_ssm_parameter" "account_global_customizations_s3_object_key" {
 }
 
 data "aws_ssm_parameter" "account_customizations_s3_object_key" {
-  name = "/aft/config/vcs/account-customizations-s3-object_key"
+  name = "/aft/config/vcs/account-customizations-s3-object-key"
 }
 
 
