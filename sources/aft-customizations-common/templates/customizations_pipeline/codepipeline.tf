@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
-  count    = local.vcs.is_codecommit ? 1 : 0
+  count    = local.vcs.is_codecommit || local.vcs.is)s3 ? 1 : 0
   name     = "${var.account_id}-customizations-pipeline"
   role_arn = data.aws_iam_role.aft_codepipeline_customizations_role.arn
 
@@ -26,13 +26,12 @@ resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
       name             = "aft-global-customizations"
       category         = "Source"
       owner            = "AWS"
-      provider         = "CodeCommit"
+      provider         = "S3"
       version          = "1"
       output_artifacts = ["source-aft-global-customizations"]
-
       configuration = {
-        RepositoryName       = data.aws_ssm_parameter.aft_global_customizations_repo_name.value
-        BranchName           = data.aws_ssm_parameter.aft_global_customizations_repo_branch.value
+        S3Bucket             = data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name
+        S3ObjectKey          = data.aws_ssm_parameter.account_global_customizations_s3_object_key
         PollForSourceChanges = false
       }
     }
@@ -41,13 +40,13 @@ resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
       name             = "aft-account-customizations"
       category         = "Source"
       owner            = "AWS"
-      provider         = "CodeCommit"
+      provider         = "S3"
       version          = "1"
       output_artifacts = ["source-aft-account-customizations"]
 
       configuration = {
-        RepositoryName       = data.aws_ssm_parameter.aft_account_customizations_repo_name.value
-        BranchName           = data.aws_ssm_parameter.aft_account_customizations_repo_branch.value
+        S3Bucket             = data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name
+        S3ObjectKey          = data.aws_ssm_parameter.account_customizations_s3_object_key
         PollForSourceChanges = false
       }
     }
@@ -108,7 +107,7 @@ resource "aws_codepipeline" "aft_codecommit_customizations_codepipeline" {
 }
 
 resource "aws_codepipeline" "aft_codestar_customizations_codepipeline" {
-  count    = local.vcs.is_codecommit ? 0 : 1
+  count    = local.vcs.is_codecommit || local.vcs.is_s3 ? 0 : 1
   name     = "${var.account_id}-customizations-pipeline"
   role_arn = data.aws_iam_role.aft_codepipeline_customizations_role.arn
 
