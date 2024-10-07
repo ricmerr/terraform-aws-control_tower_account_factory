@@ -45,3 +45,12 @@ data "aws_s3_bucket" "aft_codepipeline_customizations_bucket" {
 data "aws_ssm_parameter" "vcs_provider" {
   name = "/aft/config/vcs/provider"
 }
+
+data "aws_ssm_parameter" "account_provisioning_customizations_s3_bucket_name" {
+  name = "/aft/config/vcs/account-provisioning-customizations-s3-bucket-name"
+}
+
+data "aws_ssm_parameter" "
+
+        S3Bucket             = data.aws_ssm_parameter.account_provisioning_customizations_s3_bucket_name
+        S3ObjectKey          = data.aws_ssm_parameter.account_global_customizations_s3_object_key
