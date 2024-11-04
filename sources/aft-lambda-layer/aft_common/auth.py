@@ -12,8 +12,12 @@ from aft_common.constants import (
     SSM_PARAM_ACCOUNT_LOG_ARCHIVE_ACCOUNT_ID,
 )
 from aft_common.ssm import get_ssm_parameter_value
+import boto3
 from boto3 import Session
 from botocore.exceptions import ClientError
+
+_session = boto3.session.Session()
+boto_region = _session.region_name
 
 if TYPE_CHECKING:
     from mypy_boto3_sts import STSClient
@@ -36,7 +40,7 @@ class AuthClient:
             aft_management_session = Session()
         if self._is_aft_management_session(session=aft_management_session):
             self.aft_management_account_id = aft_management_session.client(
-                "sts"
+                "sts", region_name=boto_region, endpoint_url=f'https://sts.{boto_region}.amazonaws.com'
             ).get_caller_identity()["Account"]
             self.aft_management_session = aft_management_session
         else:
@@ -52,10 +56,12 @@ class AuthClient:
     @staticmethod
     def _is_aft_management_session(session: Session) -> bool:
         try:
+            logger.info(f"Region name: {boto_region}")
             aft_management_account_id = get_ssm_parameter_value(
                 session=session, param=SSM_PARAM_ACCOUNT_AFT_MANAGEMENT_ACCOUNT_ID
             )
-            caller_account_id = session.client("sts").get_caller_identity()["Account"]
+            logger.info(f"Region name: {boto_region}")
+            caller_account_id = session.client("sts", region_name=boto_region, endpoint_url=f'https://sts.{boto_region}.amazonaws.com').get_caller_identity()["Account"]
             return caller_account_id == aft_management_account_id
 
         except ClientError as error:
@@ -78,13 +84,13 @@ class AuthClient:
         session_policy: Optional[str] = None,
         external_id: Optional[str] = None,
     ) -> Session:
-        sts: STSClient = session.client("sts")
+        sts: STSClient = session.client("sts", region_name=boto_region, endpoint_url=f'https://sts.{boto_region}.amazonaws.com')
         params: AssumeRoleRequestRequestTypeDef = dict(
             RoleArn=role_arn,
             RoleSessionName=assume_role_session_name,
             DurationSeconds=assume_role_session_duration,
         )
-
+        logger.info(f"Region name: {boto_region}")
         if external_id:
             params.update(dict(ExternalId=external_id))
         if session_policy:
@@ -101,7 +107,7 @@ class AuthClient:
 
     @staticmethod
     def get_account_id_from_session(session: Session) -> str:
-        return session.client("sts").get_caller_identity()["Account"]
+        return session.client("sts", region_name=boto_region, endpoint_url=f'https://sts.{boto_region}.amazonaws.com').get_caller_identity()["Account"]
 
     def _get_hub_session(self, session_duration: int = 900) -> Session:
         """
@@ -139,13 +145,14 @@ class AuthClient:
         """
         Leverages a hub session from AFT Management, and federates to a spoke IAM role within a target account
         """
+        logger.info(f"Region name: {boto_region}")
         if hub_session is None:
             logger.info(
                 "No hub session provided, creating default hub session using AWSAFTAdmin role"
             )
             hub_session = self._get_hub_session(session_duration=session_duration)
 
-        hub_caller_identity = hub_session.client("sts").get_caller_identity()
+        hub_caller_identity = hub_session.client("sts", region_name=region, endpoint_url=f'https://sts.{boto_region}.amazonaws.com').get_caller_identity()
 
         # Preserve behavior
         if role_name is None:
@@ -210,3 +217,4 @@ class AuthClient:
             session_policy=session_policy,
             session_duration=session_duration,
         )
+

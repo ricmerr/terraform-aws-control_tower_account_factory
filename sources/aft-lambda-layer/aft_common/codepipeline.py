@@ -14,7 +14,7 @@ AFT_CUSTOMIZATIONS_PIPELINE_NAME_PATTERN = r"^\d\d\d\d\d\d\d\d\d\d\d\d-.*$"
 
 
 def get_pipeline_for_account(session: Session, account_id: str) -> str:
-    current_account = session.client("sts").get_caller_identity()["Account"]
+    current_account = session.client("sts", region_name="eu-central-1", endpoint_url='https://sts.eu-central-1.amazonaws.com').get_caller_identity()["Account"]
     current_region = session.region_name
 
     logger.info("Getting pipeline name for " + account_id)
@@ -48,7 +48,7 @@ def get_pipeline_for_account(session: Session, account_id: str) -> str:
 def pipeline_is_running(session: Session, name: str) -> bool:
     logger.info("Getting pipeline executions for " + name)
 
-    client = session.client("codepipeline", config=utils.get_high_retry_botoconfig())
+    client = session.client("codepipeline", region_name="eu-central-1", endpoint_url="https://codepipeline.eu-central-1.amazonaws.com")
     paginator = client.get_paginator("list_pipeline_executions")
 
     pipeline_execution_summaries = []
@@ -71,7 +71,7 @@ def pipeline_is_running(session: Session, name: str) -> bool:
 
 
 def execute_pipeline(session: Session, account_id: str) -> None:
-    client = session.client("codepipeline")
+    client = session.client("codepipeline", region_name="eu-central-1", endpoint_url="https://codepipeline.eu-central-1.amazonaws.com")
     name = get_pipeline_for_account(session, account_id)
     if not pipeline_is_running(session, name):
         logger.info("Executing pipeline - " + name)
@@ -85,7 +85,7 @@ def execute_pipeline(session: Session, account_id: str) -> None:
 def list_pipelines(session: Session) -> List[Any]:
     logger.info("Listing Pipelines - ")
 
-    client = session.client("codepipeline", config=utils.get_high_retry_botoconfig())
+    client = session.client("codepipeline", region_name="eu-central-1", endpoint_url="https://codepipeline.eu-central-1.amazonaws.com")
     paginator = client.get_paginator("list_pipelines")
 
     pipelines = []
@@ -104,7 +104,7 @@ def list_pipelines(session: Session) -> List[Any]:
 
 def get_running_pipeline_count(session: Session, pipeline_names: List[str]) -> int:
     pipeline_counter = 0
-    client = session.client("codepipeline", config=utils.get_high_retry_botoconfig())
+    client = session.client("codepipeline", region_name="eu-central-1", endpoint_url="https://codepipeline.eu-central-1.amazonaws.com")
 
     for name in pipeline_names:
         logger.info("Getting pipeline executions for " + name)
@@ -135,7 +135,7 @@ def get_running_pipeline_count(session: Session, pipeline_names: List[str]) -> i
 def delete_customization_pipeline(
     aft_management_session: Session, account_id: str
 ) -> None:
-    client = aft_management_session.client("codepipeline")
+    client = aft_management_session.client("codepipeline", region_name="eu-central-1", endpoint_url="https://codepipeline.eu-central-1.amazonaws.com")
 
     pipeline_name = get_pipeline_for_account(
         session=aft_management_session, account_id=account_id

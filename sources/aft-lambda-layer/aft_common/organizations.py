@@ -47,7 +47,7 @@ class OrganizationsAgent:
 
     def __init__(self, ct_management_session: Session):
         self.orgs_client: OrganizationsClient = ct_management_session.client(
-            "organizations", config=get_high_retry_botoconfig()
+            "organizations", config=get_high_retry_botoconfig(), region_name="us-east-1", endpoint_url="https://organizations.us-east-1.amazonaws.com"
         )
 
         # Memoization - cache org query results

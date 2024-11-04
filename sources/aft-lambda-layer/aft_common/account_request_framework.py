@@ -23,6 +23,7 @@ from aft_common.exceptions import (
 from aft_common.organizations import OrganizationsAgent
 from boto3.session import Session
 
+
 if TYPE_CHECKING:
     from mypy_boto3_dynamodb.type_defs import PutItemOutputTypeDef
     from mypy_boto3_servicecatalog import ServiceCatalogClient
@@ -121,7 +122,7 @@ def account_name_or_email_in_use(
     ct_management_session: Session, account_name: str, account_email: str
 ) -> bool:
     orgs = ct_management_session.client(
-        "organizations", config=utils.get_high_retry_botoconfig()
+        "organizations", config=utils.get_high_retry_botoconfig(), region_name="us-east-1", endpoint_url="https://organizations.us-east-1.amazonaws.com"
     )
     paginator = orgs.get_paginator("list_accounts")
     for page in paginator.paginate():
@@ -178,7 +179,7 @@ def create_provisioned_product_name(account_name: str) -> str:
 def create_new_account(
     session: Session, ct_management_session: Session, request: Dict[str, Any]
 ) -> ProvisionProductOutputTypeDef:
-    client = ct_management_session.client("servicecatalog")
+    client = ct_management_session.client("servicecatalog", region_name="eu-central-1", endpoint_url="https://servicecatalog.eu-central-1.amazonaws.com")
     event_system = client.meta.events
 
     aft_version = aft_common.ssm.get_ssm_parameter_value(
@@ -219,7 +220,7 @@ def create_new_account(
 def update_existing_account(
     session: Session, ct_management_session: Session, request: Dict[str, Any]
 ) -> None:
-    client = ct_management_session.client("servicecatalog")
+    client = ct_management_session.client("servicecatalog", region_name="eu-central-1", endpoint_url="https://servicecatalog.eu-central-1.amazonaws.com")
     event_system = client.meta.events
 
     aft_version = aft_common.ssm.get_ssm_parameter_value(
@@ -369,7 +370,7 @@ class AccountRequest:
         if it exists, raises exception if not found
         """
         client: ServiceCatalogClient = self.ct_management_session.client(
-            "servicecatalog", config=utils.get_high_retry_botoconfig()
+            "servicecatalog", config=utils.get_high_retry_botoconfig(), region_name="eu-central-1", endpoint_url="https://servicecatalog.eu-central-1.amazonaws.com"
         )
         paginator = client.get_paginator("list_portfolios")
         for response in paginator.paginate():
@@ -388,7 +389,7 @@ class AccountRequest:
         """
         Associates the AWSAFTService role with the Control Tower Account Factory Service Catalog portfolio
         """
-        client = self.ct_management_session.client("servicecatalog")
+        client = self.ct_management_session.client("servicecatalog", region_name="eu-central-1", endpoint_url="https://servicecatalog.eu-central-1.amazonaws.com")
         aft_service_role_arn = f"arn:{self.partition}:iam::{self.ct_management_account_id}:role/{ProvisionRoles.SERVICE_ROLE_NAME}"
         client.associate_principal_with_portfolio(
             PortfolioId=self.account_factory_portfolio_id,
@@ -404,7 +405,7 @@ class AccountRequest:
 
     def service_role_associated_with_account_factory(self) -> bool:
         client = self.ct_management_session.client(
-            "servicecatalog", config=utils.get_high_retry_botoconfig()
+            "servicecatalog", config=utils.get_high_retry_botoconfig(), region_name="eu-central-1", endpoint_url="https://servicecatalog.eu-central-1.amazonaws.com"
         )
         paginator = client.get_paginator("list_principals_for_portfolio")
         for response in paginator.paginate(
@@ -417,9 +418,8 @@ class AccountRequest:
         return False
 
     def provisioning_threshold_reached(self, threshold: int) -> bool:
-        client: ServiceCatalogClient = self.ct_management_session.client(
-            "servicecatalog", config=utils.get_high_retry_botoconfig()
-        )
+        client: ServiceCatalogClient = self.ct_management_session.client("servicecatalog", region_name="eu-central-1", endpoint_url="https://servicecatalog.eu-central-1.amazonaws.com")
+
         logger.info("Checking for account provisioning in progress")
 
         response = client.scan_provisioned_products(

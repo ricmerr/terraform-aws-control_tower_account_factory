@@ -17,6 +17,10 @@ from aft_common.organizations import OrganizationsAgent
 from boto3.session import Session
 from botocore.exceptions import ClientError
 
+import boto3
+_session = boto3.session.Session()
+boto_region = _session.region_name
+
 if TYPE_CHECKING:
     from mypy_boto3_dynamodb.type_defs import PutItemOutputTableTypeDef
     from mypy_boto3_iam import IAMClient, IAMServiceResource
@@ -82,7 +86,7 @@ class ProvisionRoles:
         ct_mgmt_session = self.auth.get_ct_management_session(
             role_name=ProvisionRoles.SERVICE_ROLE_NAME
         )
-        ct_mgmt_acc_id = ct_mgmt_session.client("sts").get_caller_identity()["Account"]
+        ct_mgmt_acc_id = ct_mgmt_session.client("sts", region_name=boto_region, endpoint_url=f'https://sts.{boto_region}.amazonaws.com').get_caller_identity()["Account"]
         if self.target_account_id == ct_mgmt_acc_id:
             target_account_session = ct_mgmt_session
         else:
